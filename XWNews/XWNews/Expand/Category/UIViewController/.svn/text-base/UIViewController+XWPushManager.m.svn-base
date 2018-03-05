@@ -1,0 +1,118 @@
+//
+//  UIViewController+XWPushManager.m
+//  YCSteel
+//
+//  Created by serein on 2017/12/19.
+//  Copyright © 2017年 wangjianshi. All rights reserved.
+//
+
+#import "UIViewController+XWPushManager.h"
+
+@implementation UIViewController (XWPushManager)
+
+- (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated{
+    
+    viewController.hidesBottomBarWhenPushed = YES;
+    
+    [self.navigationController pushViewController:viewController animated:YES];
+}
+
+-(void)pushViewController:(NSString *)viewController params:(NSDictionary *)params animated:(BOOL)animated{
+    
+    UIViewController *toViewController = [self viewController:viewController propertys:params];
+    
+    [self pushViewController:toViewController animated:animated];
+    
+}
+
+-(void)pushViewController:(NSString *)viewController params:(NSDictionary *)params transform:(BOOL)transform{
+    
+    NSString *controller = viewController;
+    
+    if (transform) {
+        
+        controller = [AppManager toViewControllerByRole:controller];
+    }
+    
+    [self pushViewController:controller params:params animated:YES];
+}
+
+-(UIViewController *)viewController:(NSString *)toViewController propertys:(NSDictionary *)propertys{
+    
+    NSString *class = toViewController;
+    
+    const char *className = [class cStringUsingEncoding:NSASCIIStringEncoding];
+    Class newClass = objc_getClass(className);
+    if (!newClass) {
+        //创建一个类
+        Class superClass = [NSObject class];
+        newClass = objc_allocateClassPair(superClass, className, 0);
+        //注册你创建的这个类
+        objc_registerClassPair(newClass);
+    }
+    // 创建对象(写到这里已经可以进行随机页面跳转了)
+    id instance = [[newClass alloc] init];
+    
+    //下面是传值－－－－－－－－－－－－－－
+    
+    if (propertys != nil) {
+        
+        NSArray *params = [self getPropertyWithInstance:instance];
+        
+        
+        [params enumerateObjectsUsingBlock:^(NSString *key,NSUInteger idx, BOOL *stop){
+            
+            if ([propertys valueForKey:key] != nil) {
+                
+                [instance setValue:propertys[key] forKey:key];
+            }
+            
+        }];
+        
+    }
+    
+    return instance;
+    
+}
+
+- (NSArray *)getPropertyWithInstance:(id)instance
+{
+    unsigned int outCount, i;
+    
+    NSMutableArray *propertNames = [NSMutableArray array];
+    
+    // 获取对象里的属性列表
+    objc_property_t * properties = class_copyPropertyList([instance
+                                                           class], &outCount);
+    
+    for (i = 0; i < outCount; i++) {
+        objc_property_t property =properties[i];
+        //  属性名转成字符串
+        NSString *propertyName = [[NSString alloc] initWithCString:property_getName(property) encoding:NSUTF8StringEncoding];
+        // 判断该属性是否存在
+        [propertNames addObject:propertyName];
+        
+    }
+    free(properties);
+    
+    // 再遍历父类中的属性
+    Class superClass = class_getSuperclass([instance class]);
+    
+    //通过下面的方法获取属性列表
+    unsigned int outCount2;
+    objc_property_t *properties2 = class_copyPropertyList(superClass, &outCount2);
+    
+    for (int i = 0 ; i < outCount2; i++) {
+        objc_property_t property2 = properties2[i];
+        //  属性名转成字符串
+        NSString *propertyName2 = [[NSString alloc] initWithCString:property_getName(property2) encoding:NSUTF8StringEncoding];
+        // 判断该属性是否存在
+        [propertNames addObject:propertyName2];
+    }
+    free(properties2); //释放数组
+    
+    return propertNames;
+}
+
+
+@end

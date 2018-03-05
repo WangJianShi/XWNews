@@ -1,0 +1,55 @@
+//
+//  XWMenuView.h
+//  XWMenuView
+//
+//  Created by 王剑石 on 16/8/13.
+//  Copyright © 2016年 Avatar. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "XWMenuTitleData.h"
+
+@class XWMenuView;
+
+@protocol XWMenuViewDelegate <NSObject>
+
+
+@optional
+
+-(void)menuView:(XWMenuView *)menuView didSelesctedIndex:(NSInteger)index;
+
+@end
+
+@interface XWMenuView : UIView
+
+
+@property(assign, nonatomic) id<XWMenuViewDelegate> delegate;
+
+@property (nonatomic) NSInteger selectIndex;//初始选择下标
+
+@property (nonatomic) CGFloat menuSpace;
+
+@property (nonatomic, strong) UIColor *progressColor;
+
+@property (nonatomic, assign) BOOL showProgressLine;
+
+@property (nonatomic, strong) UIColor *bagColor;
+
+@property (nonatomic, strong) NSArray<NSObject *> *dataList;
+
+@property (nonatomic, strong) UIView *bottomLine;
+
+@property (nonatomic, assign) CGFloat lineHeight;
+
+@property (nonatomic, assign) BOOL scrollEnabled;
+
+
++(XWMenuView *)creatMenuViewWithFrame: (CGRect)frame itemMargin:(CGFloat)margin delegate:(id<XWMenuViewDelegate>)delegate;
+
+-(instancetype)initWithFrame:(CGRect)frame  itemMargin:(CGFloat)margin delegate:(id<XWMenuViewDelegate>)delegate;
+
+-(void)updateBottomLineFrameWithProgressValue:(CGFloat) progress andFromPage:(NSInteger)fromPage;
+
+
+
+@end

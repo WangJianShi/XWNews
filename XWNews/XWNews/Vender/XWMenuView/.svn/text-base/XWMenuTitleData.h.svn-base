@@ -1,0 +1,41 @@
+//
+//  XWMenuTitleData.h
+//  StealTime
+//
+//  Created by 王剑石 on 2017/7/17.
+//  Copyright © 2017年 wangjianshi. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@interface XWMenuTitleData : NSObject
+
+@property (nonatomic, strong) NSString *title;
+
+@property (nonatomic, assign) CGFloat titleWidth;
+
+@property (nonatomic, strong) UIColor *defaultColor;
+
+@property (nonatomic, strong) UIFont *defaultFont;
+
+@property (nonatomic, strong) UIColor *selectColor;
+
+@property (nonatomic, strong) UIFont *selectFont;
+
+@property (nonatomic, assign) BOOL isSelect;
+
+@property (nonatomic, strong) UIColor *titleColor;
+
+@property (nonatomic, strong) UIColor *defaultBgColor;
+
+@property (nonatomic, strong) UIColor *selectBgColor;
+
+@property (nonatomic, strong) UIColor *bgColor;
+
+
+-(UIFont *)font ;
+
+-(instancetype)initWithTitle:(NSString *)title ;
+
+-(void)updateTitleColorWithProgress:(CGFloat)progress;
+@end

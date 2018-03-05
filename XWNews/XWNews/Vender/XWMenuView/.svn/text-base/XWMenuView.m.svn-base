@@ -1,0 +1,353 @@
+//
+//  XWMenuView.m
+//  XWMenuView
+//
+//  Created by 王剑石 on 16/8/13.
+//  Copyright © 2016年 Avatar. All rights reserved.
+//
+
+#import "XWMenuView.h"
+
+
+@interface XWMenuView ()<XWCollectionViewDataSource,UICollectionViewDelegate>
+
+@property (strong, nonatomic) UICollectionView *myCollectionView;
+
+@property (strong, nonatomic) NSArray *rectList;
+
+@property (nonatomic, strong) NSArray<NSObject *> *menuList;
+
+
+@end
+
+@implementation XWMenuView
+
+
++(XWMenuView *)creatMenuViewWithFrame: (CGRect)frame itemMargin:(CGFloat)margin delegate:(id<XWMenuViewDelegate>)delegate{
+    
+    
+    return [[XWMenuView alloc] initWithFrame:frame itemMargin:margin delegate:delegate];
+    
+}
+
+-(instancetype)initWithFrame:(CGRect)frame{
+    
+    if (self = [super initWithFrame:frame]) {
+        
+        self.menuSpace = 0;
+        
+        self.showProgressLine = YES;
+        
+        self.progressColor = [UIColor redColor];
+        
+        self.lineHeight = 2;
+        
+        [self addSubview:self.bottomLine];
+        
+        [self bringSubviewToFront:self.bottomLine];
+    }
+    return self;
+}
+
+-(instancetype)initWithFrame:(CGRect)frame  itemMargin:(CGFloat)margin delegate:(id<XWMenuViewDelegate>)delegate{
+    
+    if (self = [super initWithFrame:frame]) {
+        
+        self.menuSpace = margin;
+        
+        self.delegate = delegate;
+        
+        self.showProgressLine = YES;
+        
+        self.progressColor = [UIColor redColor];
+        
+        self.lineHeight = 2;
+        
+        [self addSubview:self.bottomLine];
+        
+        [self bringSubviewToFront:self.bottomLine];
+        
+    }
+    
+    return self;
+}
+
+-(void)updateBottomLineFrameWithProgressValue:(CGFloat) progress andFromPage:(NSInteger)fromPage{
+    
+    CGRect curRect = [self.rectList[fromPage] CGRectValue];
+    
+    CGFloat x = curRect.origin.x;
+    
+    CGFloat width = curRect.size.width;
+    
+    NSInteger nextIndex = fromPage;
+    
+    if (progress > 0 && fromPage < self.menuList.count - 1) {
+        
+        nextIndex = fromPage + 1;
+        
+        CGRect nextRect = [self.rectList[fromPage + 1] CGRectValue];
+        
+        width = width + (nextRect.size.width - curRect.size.width) * fabs(progress);
+        
+        x = x + (nextRect.origin.x - curRect.origin.x) * fabs(progress);
+    }else if (progress < 0 && (fromPage - 1) >= 0 ){
+        
+        nextIndex = fromPage - 1;
+        
+        CGRect nextRect = [self.rectList[fromPage - 1] CGRectValue];
+        
+        width = width + (nextRect.size.width - curRect.size.width) * fabs(progress);
+        
+        x = x + (nextRect.origin.x - curRect.origin.x) * fabs(progress);
+    }else if (progress == 0) {
+        
+        width = curRect.size.width;
+    }
+    
+    for (int i = 0; i < self.menuList.count; i++) {
+        
+        if ([self.menuList[i] isKindOfClass:[XWMenuTitleData class]]) {
+            
+            XWMenuTitleData *titleData = (XWMenuTitleData *)self.menuList[i];
+            
+            [titleData updateTitleColorWithProgress:i == fromPage ? (1- fabs(progress)) : (i == nextIndex ? fabs(progress) : 0)];
+        }
+    }
+    
+    [self.myCollectionView reloadData];
+    
+    [UIView animateWithDuration:0.32 animations:^{
+        
+        self.bottomLine.frame = CGRectMake(x, self.frame.size.height - self.lineHeight, width, self.lineHeight);
+    }];
+    
+}
+
+#pragma mark ---- datasource/delegate
+
+-(NSMutableArray *)headerDataListWithCollectionView:(UICollectionView *)collectionView{
+    
+    
+    NSObject *header = [[NSObject alloc] init];
+    header.xw_reuseIdentifier = @"UICollectionReusableView";
+    header.xw_width = 0.001;
+    header.xw_height = 0.001;
+    header.cell_secionInset = UIEdgeInsetsMake(0, self.menuSpace, 0, self.menuSpace);
+    header.cell_minimumLineSpacing = self.menuSpace;
+    header.cell_minimumInteritemSpacing = self.menuSpace;
+    
+    return [[NSMutableArray alloc] initWithObjects:header, nil];
+}
+
+-(NSMutableArray *)cellDataListWithCollectionView:(UICollectionView *)collectionView{
+    
+    return [[NSMutableArray alloc] initWithObjects:self.menuList, nil];
+}
+
+
+
+-(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (indexPath.row == self.selectIndex) {
+        
+        return;
+    }
+    
+    {//代理回调
+        if ([self.delegate respondsToSelector:@selector(menuView:didSelesctedIndex:)]) {
+            
+            [self.delegate menuView:self didSelesctedIndex:indexPath.row];
+        }
+    }
+    
+    if (self.showProgressLine) {
+       
+        self.selectIndex = indexPath.row;
+        
+    }else{
+        
+        _selectIndex = indexPath.row;
+    
+      [self.myCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:indexPath.row inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
+
+    }
+    
+
+    
+}
+
+#pragma mark ---- set/get
+
+-(void)setDataList:(NSArray<NSObject *> *)dataList{
+    
+    _dataList = dataList;
+    
+    NSMutableArray<NSObject *> *list = [ NSMutableArray<NSObject *> array];
+    NSMutableArray *rects = [ NSMutableArray array];
+    
+    CGFloat preX = self.menuSpace;
+    
+    for (int i = 0; i < _dataList.count; i ++ ) {
+        
+        
+        NSObject *obj = _dataList[i];
+        if ([obj isKindOfClass:[XWMenuTitleData class]]) {
+            
+            XWMenuTitleData *titleData = (XWMenuTitleData *)obj;
+            if (titleData.xw_height == 0) {
+                
+                titleData.xw_height = self.frame.size.height;
+            }
+            if (titleData.xw_width <= titleData.titleWidth) {
+                
+                titleData.xw_width = titleData.titleWidth;
+            }
+            
+
+            titleData.isSelect = i == self.selectIndex;
+            
+            CGFloat margin = titleData.xw_width > titleData.titleWidth ? titleData.xw_width - titleData.titleWidth : 0;
+            
+            [rects addObject:[NSValue valueWithCGRect:CGRectMake(preX + margin / 2.0, self.frame.size.height - self.lineHeight, titleData.titleWidth,self.lineHeight)]];
+            
+            preX = preX + titleData.xw_width + self.menuSpace;
+            
+            
+        }else{
+            
+            [rects addObject:[NSValue valueWithCGRect:CGRectMake(preX, self.frame.size.height - self.lineHeight, obj.xw_width,self.lineHeight)]];
+            
+            preX = preX + obj.xw_width + self.menuSpace;
+        }
+        
+        [list addObject:obj];
+    }
+    
+    
+    self.rectList = rects;
+    
+    self.menuList = list;
+    
+    if (self.selectIndex < self.rectList.count) {
+        
+        self.bottomLine.frame = [self.rectList[self.selectIndex] CGRectValue];
+        
+    }
+    
+    [self.myCollectionView reloadData];
+    
+    
+    
+}
+
+-(void)setSelectIndex:(NSInteger)selectIndex{
+    
+    _selectIndex = selectIndex;
+    
+    
+    for (int i = 0; i < self.menuList.count; i ++ ) {
+    
+        NSObject *obj = _dataList[i];
+        if ([obj isKindOfClass:[XWMenuTitleData class]]) {
+            XWMenuTitleData *titleData = (XWMenuTitleData *)obj;
+            
+            titleData.isSelect = i == _selectIndex;
+
+        }
+    }
+    
+    if (_selectIndex < self.rectList.count) {
+        
+        [UIView animateWithDuration:0.35 animations:^{
+            
+            self.bottomLine.frame = [self.rectList[_selectIndex] CGRectValue];
+        
+            
+        }];
+    }
+    
+    [self.myCollectionView reloadData];
+    
+    
+    [self.myCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:_selectIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
+
+    
+}
+
+-(void)setScrollEnabled:(BOOL)scrollEnabled{
+    
+    _scrollEnabled = scrollEnabled;
+    
+    self.myCollectionView.scrollEnabled = scrollEnabled;
+}
+
+/**
+ *  初始化集合视图
+ *
+ *  @return   _myCollectionView
+ */
+-(UICollectionView *)myCollectionView{
+    
+    if (_myCollectionView) {
+        return _myCollectionView;
+    }
+    
+    _myCollectionView=[[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height) collectionViewLayout:[[UICollectionViewFlowLayout alloc] init]];
+    _myCollectionView.showsHorizontalScrollIndicator=NO;
+    _myCollectionView.showsVerticalScrollIndicator=NO;
+    _myCollectionView.xw_delegate = self;
+    _myCollectionView.xw_dataSource = self;
+    _myCollectionView.backgroundColor=[UIColor clearColor];
+    [self addSubview:_myCollectionView];
+    [self sendSubviewToBack:_myCollectionView];
+    return _myCollectionView;
+    
+}
+
+-(UIView *)bottomLine{
+    
+    if (_bottomLine == nil) {
+        
+        _bottomLine = [[UIView alloc] initWithFrame:CGRectMake(self.menuSpace, self.frame.size.height - self.lineHeight, 0, self.lineHeight)];
+        
+        _bottomLine.backgroundColor = self.progressColor;
+        
+        _bottomLine.layer.masksToBounds = YES;
+        
+        _bottomLine.layer.cornerRadius = 1;
+        
+    }
+    
+    return _bottomLine;
+}
+
+-(void)setShowProgressLine:(BOOL)showProgressLine{
+    
+    _showProgressLine = showProgressLine;
+    
+    if (!_showProgressLine) {
+        
+        self.bottomLine.hidden = YES;
+        [self.bottomLine removeFromSuperview];
+    }
+}
+
+-(void)setBagColor:(UIColor *)bagColor{
+    
+    _bagColor = bagColor;
+    
+    self.backgroundColor = bagColor;
+    
+    self.myCollectionView.backgroundColor = bagColor;
+}
+
+-(void)setProgressColor:(UIColor *)progressColor{
+    
+    _progressColor = progressColor;
+    
+    self.bottomLine.backgroundColor = _progressColor;
+}
+
+
+@end

@@ -1,0 +1,35 @@
+//
+//  UIViewController+XWPushManager.h
+//  YCSteel
+//
+//  Created by serein on 2017/12/19.
+//  Copyright © 2017年 wangjianshi. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface UIViewController (XWPushManager)
+
+
+- (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated;
+
+/**
+ push跳转
+
+ @param viewController 目标控制器
+ @param params 参数
+ @param animated 是否动画
+ */
+- (void)pushViewController:(NSString *)viewController params:(NSDictionary *)params animated:(BOOL)animated;
+
+
+/**
+ push跳转-----阳春钢铁专有
+
+ @param viewController viewController 目标控制器
+ @param params params 参数
+ @param transform 是否根据角色转换相应的目标控制器
+ */
+- (void)pushViewController:(NSString *)viewController params:(NSDictionary *)params transform:(BOOL) transform;
+
+@end

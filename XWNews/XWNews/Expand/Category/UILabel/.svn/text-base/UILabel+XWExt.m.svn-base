@@ -1,0 +1,35 @@
+//
+//  UILabel+XWExt.m
+//  StealTime
+//
+//  Created by 王剑石 on 2017/8/1.
+//  Copyright © 2017年 wangjianshi. All rights reserved.
+//
+
+#import "UILabel+XWExt.h"
+
+@implementation UILabel (XWExt)
+
++(UILabel *)creatLabelWithFont:(CGFloat )font textColor:(UIColor *)color {
+    
+    UILabel *lab = [[UILabel alloc] init];
+    lab.textColor = color;
+    lab.font = kFont(font);
+    
+    return lab;
+}
+
++(UILabel *)creatLabelWithFont:(CGFloat )font textColor:(UIColor *)color Alignment:(NSTextAlignment)alignment{
+    
+    UILabel *lab = [[UILabel alloc] init];
+    lab.textColor = color;
+    lab.font = kFont(font);
+    lab.textAlignment = alignment;
+    
+    return lab;
+}
+
+
+
+
+@end

@@ -1,0 +1,99 @@
+//
+//  XWMenuTitleData.m
+//  StealTime
+//
+//  Created by 王剑石 on 2017/7/17.
+//  Copyright © 2017年 wangjianshi. All rights reserved.
+//
+
+#import "XWMenuTitleData.h"
+
+@interface XWMenuTitleData ()
+
+
+
+@end
+
+@implementation XWMenuTitleData
+
+-(instancetype)initWithTitle:(NSString *)title {
+    
+    if (self = [super init]) {
+        
+        self.title = title;
+        
+        self.defaultFont = [UIFont systemFontOfSize:12];
+        
+        self.selectFont = [UIFont systemFontOfSize:14];
+        
+        self.defaultBgColor = [UIColor clearColor];
+        
+        self.selectBgColor = [UIColor clearColor];
+        
+        self.defaultColor = [UIColor lightGrayColor];
+        
+        self.selectColor = [UIColor redColor];
+        
+        self.titleColor = self.defaultColor;
+        
+        self.bgColor = self.defaultBgColor;
+        
+        
+    }
+    
+    return self;
+}
+
+-(void)setIsSelect:(BOOL)isSelect{
+    
+    _isSelect = isSelect;
+    
+    self.titleColor = isSelect ? self.selectColor : self.defaultColor;
+    
+    self.bgColor = isSelect ? self.selectBgColor : self.defaultBgColor;
+}
+
+
+
+-(CGFloat)titleWidth{
+    
+    if (_titleWidth == 0) {
+        
+         UIFont *font = self.defaultFont.pointSize > self.selectFont.pointSize ? self.defaultFont : self.selectFont;
+        _titleWidth = [self.title boundingRectWithSize:CGSizeMake(MAXFLOAT, 24) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: font} context:nil].size.width;
+    }
+    
+    return _titleWidth;
+}
+
+-(void)updateTitleColorWithProgress:(CGFloat)progress{
+    
+    CGFloat normalRed  = 0.0;
+    CGFloat normalGreen  = 0.0;
+    CGFloat normalBlue  = 0.0;
+    CGFloat normalAlpha  = 0.0;
+    CGFloat selectedRed  = 0.0;
+    CGFloat selectedGreen = 0.0;
+    CGFloat selectedBlue  = 0.0;
+    CGFloat selectedAlpha  = 0.0;
+    
+    [self.defaultColor getRed:&normalRed green:&normalGreen blue:&normalBlue alpha:&normalAlpha];
+    [self.selectColor getRed:&selectedRed green:&selectedGreen blue:&selectedBlue alpha:&selectedAlpha];
+    
+    // 获取选中和未选中状态的颜色差值
+    CGFloat redDiff = selectedRed - normalRed;
+    CGFloat greenDiff = selectedGreen - normalGreen;
+    CGFloat blueDiff = selectedBlue - normalBlue;
+    CGFloat alphaDiff = selectedAlpha - normalAlpha;
+    
+    self.titleColor = [[UIColor alloc] initWithRed:progress * redDiff + normalRed green:progress * greenDiff + normalGreen blue:progress * blueDiff + normalBlue alpha:progress * alphaDiff + normalAlpha];
+
+}
+
+
+-(UIFont *)font {
+    
+    return  self.isSelect ? self.selectFont : self.defaultFont;
+}
+
+@end

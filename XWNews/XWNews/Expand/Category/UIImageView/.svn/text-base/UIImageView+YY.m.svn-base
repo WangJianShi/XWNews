@@ -1,0 +1,36 @@
+//
+//  UIImageView+YY.m
+//  StealTime
+//
+//  Created by 王剑石 on 2017/9/1.
+//  Copyright © 2017年 wangjianshi. All rights reserved.
+//
+
+#import "UIImageView+YY.h"
+#import <SDWebImage/UIImageView+WebCache.h>
+
+@implementation UIImageView (YY)
+
+-(void)st_setImageWithURL:(NSString *)url placeholder:(NSString *)placeholderImg imageByResizeToSize:(CGSize)size{
+    
+    [self sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:[UIImage imageNamed:placeholderImg] completed:nil];
+
+}
+
+-(void)st_setImageWithURL:(NSString *)url placeholder:(NSString *)placeholderImg{
+    
+      [self sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:[UIImage imageNamed:placeholderImg] completed:nil];
+    
+
+}
+
+-(void)st_setImageWithURL:(NSString *)url placeholderImg:(UIImage *)placeholderImg{
+    
+    
+     [self sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:placeholderImg completed:nil];
+
+}
+
+
+
+@end
